@@ -9,16 +9,16 @@
 
 'use strict';
 
-'use strict';
-
-var url = require('url'); // $FlowFixMe
 
 
-var Module = require('module');
+let url = require('url'); // $FlowFixMe
+
+
+let Module = require('module');
 
 module.exports = function register() {
-  var MODULE_REFERENCE = Symbol.for('react.module.reference');
-  var proxyHandlers = {
+  let MODULE_REFERENCE = Symbol.for('react.module.reference');
+  let proxyHandlers = {
     get: function (target, name, receiver) {
       switch (name) {
         // These names are read by the Flight runtime if you end up using the exports object.
@@ -51,7 +51,7 @@ module.exports = function register() {
           return true;
       }
 
-      var cachedReference = target[name];
+      let cachedReference = target[name];
 
       if (!cachedReference) {
         cachedReference = target[name] = {
@@ -69,8 +69,8 @@ module.exports = function register() {
   };
 
   require.extensions['.client.js'] = function (module, path) {
-    var moduleId = url.pathToFileURL(path).href;
-    var moduleReference = {
+    let moduleId = url.pathToFileURL(path).href;
+    let moduleReference = {
       $$typeof: MODULE_REFERENCE,
       filepath: moduleId,
       name: '*' // Represents the whole object instead of a particular import.
@@ -79,22 +79,23 @@ module.exports = function register() {
     module.exports = new Proxy(moduleReference, proxyHandlers);
   };
 
-  var originalResolveFilename = Module._resolveFilename;
+  let originalResolveFilename = Module._resolveFilename;
 
   Module._resolveFilename = function (request, parent, isMain, options) {
-    var resolved = originalResolveFilename.apply(this, arguments);
+    let resolved = originalResolveFilename.apply(this, arguments);
+    const extension = /\.server\.(j|t)s$/;
 
-    if (resolved.endsWith('.server.js')) {
-      if (parent && parent.filename && !parent.filename.endsWith('.server.js')) {
-        var reason;
+    if (extension.test(resolved)) {
+      if (parent && parent.filename && !extension.test(parent.filename)) {
+        let reason;
 
-        if (request.endsWith('.server.js')) {
-          reason = "\"" + request + "\"";
+        if (extension.test(request)) {
+          reason = '"' + request + '"';
         } else {
-          reason = "\"" + request + "\" (which expands to \"" + resolved + "\")";
+          reason = '"' + request + '" (which expands to "' + resolved + '")';
         }
 
-        throw new Error("Cannot import " + reason + " from \"" + parent.filename + "\". " + 'By react-server convention, .server.js files can only be imported from other .server.js files. ' + 'That way nobody accidentally sends these to the client by indirectly importing it.');
+        throw new Error('Cannot import ' + reason + ' from "' + parent.filename + '". ' + 'By react-server convention, .server.js files can only be imported from other .server.js files. ' + 'That way nobody accidentally sends these to the client by indirectly importing it.');
       }
     }
 
