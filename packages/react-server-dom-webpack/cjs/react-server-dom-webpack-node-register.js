@@ -83,21 +83,6 @@ module.exports = function register() {
 
   Module._resolveFilename = function (request, parent, isMain, options) {
     let resolved = originalResolveFilename.apply(this, arguments);
-    const extension = /\.server\.(j|t)s$/;
-
-    if (extension.test(resolved)) {
-      if (parent && parent.filename && !extension.test(parent.filename)) {
-        let reason;
-
-        if (extension.test(request)) {
-          reason = '"' + request + '"';
-        } else {
-          reason = '"' + request + '" (which expands to "' + resolved + '")';
-        }
-
-        throw new Error('Cannot import ' + reason + ' from "' + parent.filename + '". ' + 'By react-server convention, .server.js files can only be imported from other .server.js files. ' + 'That way nobody accidentally sends these to the client by indirectly importing it.');
-      }
-    }
 
     return resolved;
   };

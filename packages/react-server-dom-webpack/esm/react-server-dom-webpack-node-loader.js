@@ -10,7 +10,7 @@
 import { __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED } from 'react';
 import acorn from 'acorn';
 
-var ReactSharedInternals = __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+const ReactSharedInternals = __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
 
 // by calls to these methods by a Babel plugin.
 //
@@ -31,15 +31,15 @@ function printWarning(level, format, args) {
   // When changing this logic, you might want to also
   // update consoleWithStackDev.www.js as well.
   {
-    var ReactDebugCurrentFrame = ReactSharedInternals.ReactDebugCurrentFrame;
-    var stack = ReactDebugCurrentFrame.getStackAddendum();
+    const ReactDebugCurrentFrame = ReactSharedInternals.ReactDebugCurrentFrame;
+    const stack = ReactDebugCurrentFrame.getStackAddendum();
 
     if (stack !== '') {
       format += '%s';
       args = args.concat([stack]);
     }
 
-    var argsWithFormat = args.map(function (item) {
+    const argsWithFormat = args.map(function (item) {
       return '' + item;
     }); // Careful: RN currently depends on this prefix
 
@@ -51,9 +51,9 @@ function printWarning(level, format, args) {
   }
 }
 
-var warnedAboutConditionsFlag = false;
-var stashedGetSource = null;
-var stashedResolve = null;
+let warnedAboutConditionsFlag = false;
+let stashedGetSource = null;
+let stashedResolve = null;
 async function resolve(specifier, context, defaultResolve) {
   // We stash this in case we end up needing to resolve export * statements later.
   stashedResolve = defaultResolve;
@@ -70,23 +70,7 @@ async function resolve(specifier, context, defaultResolve) {
     }
   }
 
-  var resolved = await defaultResolve(specifier, context, defaultResolve);
-
-  if (resolved.url.endsWith('.server.js')) {
-    var parentURL = context.parentURL;
-
-    if (parentURL && !parentURL.endsWith('.server.js')) {
-      var reason;
-
-      if (specifier.endsWith('.server.js')) {
-        reason = "\"" + specifier + "\"";
-      } else {
-        reason = "\"" + specifier + "\" (which expands to \"" + resolved.url + "\")";
-      }
-
-      throw new Error("Cannot import " + reason + " from \"" + parentURL + "\". " + 'By react-server convention, .server.js files can only be imported from other .server.js files. ' + 'That way nobody accidentally sends these to the client by indirectly importing it.');
-    }
-  }
+  const resolved = await defaultResolve(specifier, context, defaultResolve);
 
   return resolved;
 }
@@ -103,15 +87,15 @@ function addExportNames(names, node) {
       return;
 
     case 'ObjectPattern':
-      for (var i = 0; i < node.properties.length; i++) {
+      for (let i = 0; i < node.properties.length; i++) {
         addExportNames(names, node.properties[i]);
       }
 
       return;
 
     case 'ArrayPattern':
-      for (var _i = 0; _i < node.elements.length; _i++) {
-        var element = node.elements[_i];
+      for (let _i = 0; _i < node.elements.length; _i++) {
+        const element = node.elements[_i];
         if (element) addExportNames(names, element);
       }
 
@@ -141,7 +125,7 @@ function resolveClientImport(specifier, parentURL) {
   // This resolution algorithm will not necessarily have the same configuration
   // as the actual client loader. It should mostly work and if it doesn't you can
   // always convert to explicit exported names instead.
-  var conditions = ['node', 'import'];
+  const conditions = ['node', 'import'];
 
   if (stashedResolve === null) {
     throw new Error('Expected resolve to have been called before transformSource');
@@ -159,10 +143,10 @@ async function loadClientImport(url, defaultTransformSource) {
   } // TODO: Validate that this is another module by calling getFormat.
 
 
-  var _await$stashedGetSour = await stashedGetSource(url, {
+  const _await$stashedGetSour = await stashedGetSource(url, {
     format: 'module'
-  }, stashedGetSource),
-      source = _await$stashedGetSour.source;
+  }, stashedGetSource);
+  const source = _await$stashedGetSour.source;
 
   return defaultTransformSource(source, {
     format: 'module',
@@ -171,14 +155,14 @@ async function loadClientImport(url, defaultTransformSource) {
 }
 
 async function parseExportNamesInto(transformedSource, names, parentURL, defaultTransformSource) {
-  var _acorn$parse = acorn.parse(transformedSource, {
+  const _acorn$parse = acorn.parse(transformedSource, {
     ecmaVersion: '2019',
     sourceType: 'module'
-  }),
-      body = _acorn$parse.body;
+  });
+  const body = _acorn$parse.body;
 
-  for (var i = 0; i < body.length; i++) {
-    var node = body[i];
+  for (let i = 0; i < body.length; i++) {
+    const node = body[i];
 
     switch (node.type) {
       case 'ExportAllDeclaration':
@@ -186,11 +170,11 @@ async function parseExportNamesInto(transformedSource, names, parentURL, default
           addExportNames(names, node.exported);
           continue;
         } else {
-          var _await$resolveClientI = await resolveClientImport(node.source.value, parentURL),
-              url = _await$resolveClientI.url;
+          const _await$resolveClientI = await resolveClientImport(node.source.value, parentURL);
+          const url = _await$resolveClientI.url;
 
-          var _await$loadClientImpo = await loadClientImport(url, defaultTransformSource),
-              source = _await$loadClientImpo.source;
+          const _await$loadClientImpo = await loadClientImport(url, defaultTransformSource);
+          const source = _await$loadClientImpo.source;
 
           if (typeof source !== 'string') {
             throw new Error('Expected the transformed source to be a string.');
@@ -207,9 +191,9 @@ async function parseExportNamesInto(transformedSource, names, parentURL, default
       case 'ExportNamedDeclaration':
         if (node.declaration) {
           if (node.declaration.type === 'VariableDeclaration') {
-            var declarations = node.declaration.declarations;
+            const declarations = node.declaration.declarations;
 
-            for (var j = 0; j < declarations.length; j++) {
+            for (let j = 0; j < declarations.length; j++) {
               addExportNames(names, declarations[j].id);
             }
           } else {
@@ -218,9 +202,9 @@ async function parseExportNamesInto(transformedSource, names, parentURL, default
         }
 
         if (node.specificers) {
-          var specificers = node.specificers;
+          const specificers = node.specificers;
 
-          for (var _j = 0; _j < specificers.length; _j++) {
+          for (let _j = 0; _j < specificers.length; _j++) {
             addExportNames(names, specificers[_j].exported);
           }
         }
@@ -231,21 +215,21 @@ async function parseExportNamesInto(transformedSource, names, parentURL, default
 }
 
 async function transformSource(source, context, defaultTransformSource) {
-  var transformed = await defaultTransformSource(source, context, defaultTransformSource);
+  const transformed = await defaultTransformSource(source, context, defaultTransformSource);
 
   if (context.format === 'module' && context.url.endsWith('.client.js')) {
-    var transformedSource = transformed.source;
+    const transformedSource = transformed.source;
 
     if (typeof transformedSource !== 'string') {
       throw new Error('Expected source to have been transformed to a string.');
     }
 
-    var names = [];
+    const names = [];
     await parseExportNamesInto(transformedSource, names, context.url, defaultTransformSource);
-    var newSrc = "const MODULE_REFERENCE = Symbol.for('react.module.reference');\n";
+    let newSrc = "const MODULE_REFERENCE = Symbol.for('react.module.reference');\n";
 
-    for (var i = 0; i < names.length; i++) {
-      var name = names[i];
+    for (let i = 0; i < names.length; i++) {
+      const name = names[i];
 
       if (name === 'default') {
         newSrc += 'export default ';
